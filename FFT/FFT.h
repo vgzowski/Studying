@@ -83,6 +83,30 @@ namespace FFT {
 		for (int i = 0; i < n; ++i) a[i] /= n;
 	}
 
+	template <typename T, typename U>
+	std::vector <U> multiply(const std::vector <T>& A, const std::vector <T>& B) {
+		const int& n = A.size(), &m = B.size();
+		int s = get2(n + m);
+
+		for (int i = 0; i < s; ++i) {
+			a[i].r = (i < n ? A[i] : 0);
+			a[i].i = (i < m ? B[i] : 0);
+		}
+
+		fft(a, s);
+		cplx r(0, -0.25 / s);
+		for (int i = 0; i <= (s >> 1); ++i) {
+			int j = (s - i) & (s - 1);
+			cplx z = (a[j] * a[j] - (a[i] * a[i]).conj()) * r;
+			if (i != j) a[j] = (a[i] * a[i] - (a[j] * a[j]).conj()) * r;
+			a[i] = z;
+		}
+		fft(a, s);
+
+		std::vector <U> result(s);
+		for (int i = 0; i < s; ++i) result[i] = a[i].r;
+		return result;
+	}
 	template <typename T>
 	std::vector <long long> multiply(const std::vector <T>& A, const std::vector <T>& B) {
 		const int& n = A.size(), &m = B.size();
@@ -104,9 +128,11 @@ namespace FFT {
 		fft(a, s);
 
 		std::vector <long long> result(s);
-		for (int i = 0; i < s; ++i) result[i] = a[i].r + 0.5;
+		for (int i = 0; i < s; ++i) result[i] = (long long)(a[i].r + 0.5);
+		while (result.size() > 1 && result.back() == 0) result.pop_back();
 		return result;
 	}
+
 	std::vector <int> multiply_mod(const std::vector <int>& A, const std::vector <int>& B, const int &Mod) {
 		const int& n = A.size(), &m = B.size();
 		int s = get2(n + m);
@@ -150,6 +176,7 @@ namespace FFT {
 			int C = (((long long)(b[i].r + 0.5) % Mod) << 30ll) % Mod;
 			result[i] = (((A + B) % Mod) + C) % Mod;
 		}
+		while (result.size() > 1 && result.back() == 0) result.pop_back();
 		return result;
 	}
 };
