@@ -4,153 +4,152 @@
 #include <vector>
 
 namespace FFT {
-	template <typename T> struct cplx {
+	template <typename T> struct cpx {
 		T r, i;
-		cplx() : r(T(0)), i(T(0)) {}
-		cplx(int x) : r(static_cast<T>(x)), i(T(0)) {}
-		cplx(long long x) : r(static_cast<T>(x)), i(T(0)) {}
-		cplx(double x) : r(static_cast<T>(x)), i(T(0)) {}
-		cplx(long double x) : r(static_cast<T>(x)), i(T(0)) {}
+		cpx() : r(0), i(0) {}
+		cpx(int x) : r(x), i(0) {}
+		cpx(long long x) : r(x), i(0) {}
+		cpx(double x) : r(x), i(0) {}
+		cpx(long double x) : r(x), i(0) {}
+		cpx(long double r, long double i) : r(r), i(i) {}
 
-		cplx(T r, T i) : r(r), i(i) {}
+		cpx operator + (const cpx& other) const { return cpx(r + other.r, i + other.i); }
+		cpx& operator += (const cpx& other) { r += other.r, i += other.i; return *this; }
 
-		cplx operator + (const cplx& other) const { return cplx(r + other.r, i + other.i); }
-		cplx& operator += (const cplx& other) { r += other.r, i += other.i; return *this; }
+		cpx operator - (const cpx& other) const { return cpx(r - other.r, i - other.i); }
+		cpx& operator -= (const cpx& other) { r -= other.i, i -= other.i; return *this; }
 
-		cplx operator - (const cplx& other) const { return cplx(r - other.r, i - other.i); }
-		cplx& operator -= (const cplx& other) { r -= other.i, i -= other.i; return *this; }
+		cpx operator * (const cpx& other) const { return cpx(r * other.r - i * other.i, r * other.i + i * other.r); }
+		cpx& operator *= (const cpx& other) { *this = *this * other; return *this; }
 
-		cplx operator * (const cplx& other) const { return cplx(r * other.r - i * other.i, r * other.i + i * other.r); }
-		cplx& operator *= (const cplx& other) { *this = *this * other; return *this; }
+		template <typename U> cpx& operator *= (const U& x) { r *= x, i *= x; return *this; }
+		template <typename U> cpx& operator /= (const U& x) { r /= x, i /= x; return *this; }
+		template <typename U> cpx operator * (const U& x) const { return cpx(r * x, i * x); }
+		template <typename U> cpx operator / (const U& x) const { return cpx(r / x, i / x); }
 
-		cplx& operator *= (const T& x) { r *= x, i *= x; return *this; }
-		cplx& operator /= (const T& x) { r /= x, i /= x; return *this; }
-
-		inline cplx conj() {
-			return cplx(r, -i);
-		}
+		inline cpx conj() const { return cpx(r, -i); }
 	};
 
+	typedef cpx<long double> cplx;
+	constexpr long double pi = 3.14159265358979323846264338327950;
 	static inline int lg2(int n) { return 31 - __builtin_clz(n); }
 	static inline int get2(int n) { return 1 << (32 - __builtin_clz(n - 1)); }
 
-	typedef cplx<long double> cp;
-	constexpr long double pi = 3.14159265358979323846264338327950;
+	constexpr int LG = 20;
+	constexpr int N = 1 << LG;
 
-	cp *a, *b;
-	cp *w, *iw;
+	int reverse[N];
+	cplx a[N], b[N], w[N], iw[N];
+	std::vector <cplx> as, bs, ab, bb;
 
-	int *reverse;
-
-	int N = 0;
-
-	void init(int _N) {
-		w = new cp[_N];
-		iw = new cp[_N];
-		for (int k = 0; (1 << (k + 1)) <= _N; ++k) {
-			int t = 1 << k;
-
-			long double ang = 2 * pi / t;
-
-			cp root( cos(ang), sin(ang) );
-			cp iroot = root.conj();
-
-			w[t] = cp(1);
-			iw[t] = cp(1);
-			for (int u = t + 1; u < (t << 1); ++u) {
-				w[u] = w[u - 1] * root;
-				iw[u] = iw[u - 1] * iroot;
+	inline void init() {
+		w[1] = iw[1] = cplx(1);
+		for (int k = 1, u = 2; k < LG; ++k, u <<= 1) {
+			long double A = pi / u;
+			cplx z(cos(A), sin(A)); cplx iz = z.conj();
+			for (int i = u >> 1; i < u; ++i) {
+				w[i << 1] = w[i]; w[i << 1 | 1] = w[i] * z;
+				iw[i << 1] = iw[i]; iw[i << 1 | 1] = iw[i] * iz;
 			}
 		}
-
-		a = new cp[_N];
-		b = new cp[_N];
-		reverse = new int[_N];
-
-		N = _N;
 	}
-
-	void fft(cp *a, int n, bool inverse) {
+	inline void fft(cplx *a, int n) {
 		const int l = lg2(n);
-		for (int i = 1; i < n; ++i) reverse[i] = (reverse[i >> 1] >> 1) | ((i & 1) << (l - 1));
+		for (int i = 1; i < n; ++i) reverse[i] = (reverse[i >> 1] | ((i & 1) << l)) >> 1;
 		for (int i = 0; i < n; ++i) if (i < reverse[i]) std::swap(a[i], a[reverse[i]]);
-
 		for (int l = 1; l < n; l <<= 1) {
 			for (int i = 0; i < n; i += 2 * l) {
 				for (int j = 0; j < l; ++j) {
-					cp a1 = a[i + j], a2 = a[i + j + l] * (inverse ? iw[2 * l + j] : w[2 * l + j]);
-					a[i + j] = a1 + a2, a[i + j + l] = a1 - a2;
+					cplx u = a[i + j + l] * w[l + j];
+					a[i + j + l] = a[i + j] - u;
+					a[i + j] += u;
 				}
 			}
 		}
-		if (inverse) {
-			for (int i = 0; i < n; ++i) {
-				a[i] /= (long double)n;
+	}
+	inline void ifft(cplx *a, int n) {
+		const int l = lg2(n);
+		for (int i = 1; i < n; ++i) reverse[i] = (reverse[i >> 1] | ((i & 1) << l)) >> 1;
+		for (int i = 0; i < n; ++i) if (i < reverse[i]) std::swap(a[i], a[reverse[i]]);
+		for (int l = 1; l < n; l <<= 1) {
+			for (int i = 0; i < n; i += 2 * l) {
+				for (int j = 0; j < l; ++j) {
+					cplx u = a[i + j + l] * iw[l + j];
+					a[i + j + l] = a[i + j] - u;
+					a[i + j] += u;
+				}
 			}
 		}
+		for (int i = 0; i < n; ++i) a[i] /= n;
 	}
 
-	template <typename U> inline int transform( U x ) { return (int)round(x); }
-
 	template <typename T>
-	std::vector <T> multiply(const std::vector <T>& A, const std::vector <T>& B) {
-		const int& n = A.size();
-		const int& m = B.size();
+	std::vector <long long> multiply(const std::vector <T>& A, const std::vector <T>& B) {
+		const int& n = A.size(), &m = B.size();
+		int s = get2(n + m);
 
-		int s = get2(n + m + 10);
-
-		for (int i = 0; i < s; ++i) a[i] = cp(0);
-		for (int i = 0; i < n; ++i) a[i] = cp(A[i]);
-
-		for (int i = 0; i < s; ++i) b[i] = cp(0);
-		for (int i = 0; i < m; ++i) b[i] = cp(B[i]);
-
-		fft(a, s, 0);
-		fft(b, s, 0);
 		for (int i = 0; i < s; ++i) {
-			a[i] *= b[i];
+			a[i].r = (i < n ? A[i] : 0);
+			a[i].i = (i < m ? B[i] : 0);
 		}
-		fft(a, s, 1);
-		std::vector <T> result(s);
-		for (int i = 0; i < s; ++i) {
-			result[i] = transform(a[i].r);
+
+		fft(a, s);
+		cplx r(0, -0.25 / s);
+		for (int i = 0; i <= (s >> 1); ++i) {
+			int j = (s - i) & (s - 1);
+			cplx z = (a[j] * a[j] - (a[i] * a[i]).conj()) * r;
+			if (i != j) a[j] = (a[i] * a[i] - (a[j] * a[j]).conj()) * r;
+			a[i] = z;
 		}
-		while (result.size() > 1 && result.back() == T(0)) result.pop_back();
+		fft(a, s);
+
+		std::vector <long long> result(s);
+		for (int i = 0; i < s; ++i) result[i] = a[i].r + 0.5;
 		return result;
 	}
 	std::vector <int> multiply_mod(const std::vector <int>& A, const std::vector <int>& B, const int &Mod) {
-		const int C = (int)sqrt(Mod);
+		const int& n = A.size(), &m = B.size();
+		int s = get2(n + m);
+		if (as.size() < s) as.resize(s);
+		if (ab.size() < s) ab.resize(s);
+		if (bs.size() < s) bs.resize(s);
+		if (bb.size() < s) bb.resize(s);
 
-		const int& n = A.size();
-		const int& m = B.size();
-		std::vector <int> A1(n), A2(n);
-		std::vector <int> B1(m), B2(m);
-		for (int i = 0; i < n; ++i) {
-			A1[i] = A[i] % C;
-			A2[i] = A[i] / C;
+		for (int i = 0; i < s; ++i) {
+			a[i].r = (i < n ? A[i] & ((1 << 15) - 1) : 0);
+			a[i].i = (i < n ? A[i] >> 15 : 0);
 		}
-		for (int i = 0; i < m; ++i) {
-			B1[i] = B[i] % C;
-			B2[i] = B[i] / C;
-		}
-
-		std::vector <int> result = multiply<int>(A1, B1);
-		std::vector <int> 	temp1 = multiply(A1, B2),
-					temp2 = multiply(A2, B1),
-					temp3 = multiply(A2, B2);
-
-		for (int i = 0; i < result.size(); ++i) {
-			result[i] += (temp1[i] * 1LL * C) % Mod;
-			if (result[i] >= Mod) result[i] -= Mod;
-
-			result[i] += (temp2[i] * 1LL * C) % Mod;
-			if (result[i] >= Mod) result[i] -= Mod;
-
-			result[i] += (temp3[i] * 1LL * C * 1LL * C) % Mod;
-			if (result[i] >= Mod) result[i] -= Mod;
+		fft(a, s);
+		for (int i = 0; i < s; ++i) {
+			int j = (s - 1) & (s - i);
+			as[i] = (a[i] + a[j].conj()) * 0.5;
+			ab[i] = (a[j].conj() - a[i]) * cplx(0, 0.5);
 		}
 
-		while (result.size() > 1 && result.back() == 0) result.pop_back();
+		for (int i = 0; i < s; ++i) {
+			b[i].r = (i < m ? B[i] & ((1 << 15) - 1) : 0);
+			b[i].i = (i < m ? B[i] >> 15 : 0);
+		}
+		fft(b, s);
+		for (int i = 0; i < s; ++i) {
+			int j = (s - 1) & (s - i);
+			bs[i] = (b[i] + b[j].conj()) * 0.5;
+			bb[i] = (b[j].conj() - b[i]) * cplx(0, 0.5);
+		}
+
+		for (int i = 0; i < s; ++i) {
+			a[i] = as[i] * bs[i] + cplx(0, 1) * (as[i] * bb[i] + ab[i] * bs[i]);
+			b[i] = ab[i] * bb[i];
+		}
+
+		ifft(a, s); ifft(b, s);
+		std::vector <int> result(s);
+		for (int i = 0; i < s; ++i) {
+			int A = (long long)(a[i].r + 0.5) % Mod;
+			int B = (((long long)(a[i].i + 0.5) % Mod) << 15ll) % Mod;
+			int C = (((long long)(b[i].r + 0.5) % Mod) << 30ll) % Mod;
+			result[i] = (((A + B) % Mod) + C) % Mod;
+		}
 		return result;
 	}
 };
