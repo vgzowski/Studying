@@ -9,4 +9,10 @@ int main() {
 
 	ModInteger<10> b(3);
 	cout << b * b.inverse() << endl;
+
+	static_assert( IsModular<ModInteger<-5>>::value );
+	static_assert( IsModular<ModInteger<123>>::value );
+	static_assert( IsModular<ModInteger<11>>::value );
+	static_assert( IsModular<ModInteger<0>>::value );
+	static_assert( !IsModular<int>::value );
 }

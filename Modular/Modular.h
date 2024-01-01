@@ -1,42 +1,22 @@
 #pragma once
 #include <iostream>
 
-namespace Checkers {
-	template <class T, T X> struct IsPrime {
-		static constexpr bool check() {
-			for (T i = T(2); i * i <= X; ++i) {
-				if (X % i == 0) {
-					return false;
-				}
-			}
-			return true;
+template <int Number>
+struct IsPrime {
+	static constexpr bool __check() {
+		for (int i = 2; i * i <= Number; ++i) {
+			if (Number % i == 0) return false;
 		}
-		enum { Result = check() };
-	};
-	template <class T, T X> struct Phi {
-		static constexpr T getPhi() {
-			T result = X, number = X;
-			for (T i = T(2); i * i <= number; ++i) {
-				if (number % i == 0) {
-					result /= i;
-					result *= i - T(1);
-					while (number % i == 0) {
-						number /= i;
-					}
-				}
-			}
-			return result;
-		};
-		enum { Result = getPhi() };
-	};
+		return true;
+	}
+	enum { value = __check() };
 };
 
 template <int Mod>
 class ModInteger {
 private:
 	int value;
-	static constexpr bool pr = Checkers::IsPrime<int, Mod>::Result;
-	static constexpr int phi = Checkers::Phi<int, Mod>::Result;
+	static constexpr bool PrimeModulo = IsPrime<Mod>::value;
 
 	static std::pair <long long, long long> gcd_ex(const int &a, const int &b) {
 		if (!b) return std::make_pair(1, 0);
@@ -48,8 +28,8 @@ public:
 	template <int ModU> friend std::ostream & operator << (std::ostream &, const ModInteger<ModU> &);
 
 	ModInteger() { value = int(0); }
-	ModInteger(int x) { value = static_cast<int>((x % Mod + Mod) % Mod); }
-	ModInteger(long long x) { value = static_cast<int>((x % Mod + Mod) % Mod); }
+	ModInteger(int x) { value = (x % Mod + Mod) % Mod; }
+	ModInteger(long long x) { value = (x % Mod + Mod) % Mod; }
 
 	ModInteger& operator += (const ModInteger& other);
 	ModInteger operator + (const ModInteger& other) const;
@@ -65,6 +45,7 @@ public:
 
 	ModInteger inverse() const;
 
+	bool operator != (const ModInteger& other) const;
 	bool operator == (const ModInteger& other) const;
 	bool operator < (const ModInteger& other) const;
 	bool operator <= (const ModInteger& other) const;
@@ -141,8 +122,8 @@ ModInteger<Mod> ModInteger<Mod>::operator ^ (U power) const {
 
 template <int Mod>
 ModInteger<Mod> ModInteger<Mod>::inverse() const {
-	if (this->pr) {
-		return *this ^ (phi - 1);
+	if (ModInteger<Mod>::PrimeModulo) {
+		return *this ^ (Mod - 2);
 	}
 	else {
 		std::pair <long long, long long> result = gcd_ex( this->value, Mod );
@@ -167,6 +148,10 @@ bool ModInteger<Mod>::operator == (const ModInteger<Mod>& other) const {
 	return this->value == other.value;
 }
 template <int Mod>
+bool ModInteger<Mod>::operator != (const ModInteger<Mod>& other) const {
+	return this->value != other.value;
+}
+template <int Mod>
 bool ModInteger<Mod>::operator < (const ModInteger<Mod>& other) const {
 	return this->value < other.value;
 }
@@ -184,5 +169,10 @@ bool ModInteger<Mod>::operator >= (const ModInteger<Mod>& other) const {
 }
 
 /*
-----------------------------------------------------------------------------------------------
+------------------------------------------------------------------------
 */
+
+template <typename T>
+struct IsModular { enum { value = false }; };
+template <int Mod>
+struct IsModular < ModInteger <Mod> > { enum { value = true }; };
