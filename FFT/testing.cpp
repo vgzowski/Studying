@@ -1,6 +1,13 @@
 #include <bits/stdc++.h>
 #include "FFT.h"
 
+/*
+https://judge.yosupo.jp/submission/180812
+https://judge.yosupo.jp/submission/180024
+
+https://judge.yosupo.jp/submission/180818
+*/
+
 using namespace std;
 
 signed main() {
@@ -8,7 +15,7 @@ signed main() {
 		vector <int> a{123341, 7452};
 		vector <int> b{854126, 38855, 33};
 
-		auto c = a;
+		auto c = FFT::multiply_mod(a, b, (int)998244353);
 
 		for (auto &i : c) cout << i << " ";
 		cout << '\n';
