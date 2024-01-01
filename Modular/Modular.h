@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef __MODULAR_INCLUDE
+#define __MODULAR_INCLUDE
+
 #include <iostream>
 
 template <int Number>
@@ -176,3 +180,5 @@ template <typename T>
 struct IsModular { enum { value = false }; };
 template <int Mod>
 struct IsModular < ModInteger <Mod> > { enum { value = true }; };
+
+#endif

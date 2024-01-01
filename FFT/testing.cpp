@@ -20,17 +20,17 @@ signed main() {
 		vector <double> a{1.1, 2.3};
 		vector <double> b{2.3, 4.1, 4.3};
 
-		vector <double> c = FFT::multiply<double, double>(a, b);
+		vector <double> c = FFT::multiply<double>(a, b);
 
 		for (auto &i : c) cout << i << " ";
 		cout << '\n';
 	}
 
 	{
-		vector <double> a{1.1, 2.3};
-		vector <double> b{2.3, 4.1, 4.3};
+		vector <int> a{1, 3};
+		vector <int> b{2, 4, 1};
 
-		vector <long long> c = FFT::multiply<double>(a, b);
+		vector <int> c = FFT::multiply(a, b);
 
 		for (auto &i : c) cout << i << " ";
 		cout << '\n';

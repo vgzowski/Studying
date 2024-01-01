@@ -1,7 +1,14 @@
 #pragma once
+#ifndef __FFT_INCLUDE
+#define __FFT_INCLUDE
+
 #include <iostream>
 #include <cmath>
 #include <vector>
+
+#include "../CompileTime/TypeList.H"
+
+typedef TypeList <short int, int, long, long long> __FFT_IntegerList;
 
 namespace FFT {
 	template <typename T> struct cpx {
@@ -32,6 +39,7 @@ namespace FFT {
 
 	typedef cpx<long double> cplx;
 	constexpr long double pi = 3.14159265358979323846264338327950;
+
 	static inline int lg2(int n) { return 31 - __builtin_clz(n); }
 	static inline int get2(int n) { return 1 << (32 - __builtin_clz(n - 1)); }
 
@@ -42,7 +50,7 @@ namespace FFT {
 	cplx a[N], b[N], w[N], iw[N];
 	std::vector <cplx> as, bs, ab, bb;
 
-	inline void init() {
+	void init() {
 		w[1] = iw[1] = cplx(1);
 		for (int k = 1, u = 2; k < LG; ++k, u <<= 1) {
 			long double A = pi / u;
@@ -53,7 +61,7 @@ namespace FFT {
 			}
 		}
 	}
-	inline void fft(cplx *a, int n) {
+	void fft(cplx *a, int n) {
 		const int l = lg2(n);
 		for (int i = 1; i < n; ++i) reverse[i] = (reverse[i >> 1] | ((i & 1) << l)) >> 1;
 		for (int i = 0; i < n; ++i) if (i < reverse[i]) std::swap(a[i], a[reverse[i]]);
@@ -67,7 +75,7 @@ namespace FFT {
 			}
 		}
 	}
-	inline void ifft(cplx *a, int n) {
+	void ifft(cplx *a, int n) {
 		const int l = lg2(n);
 		for (int i = 1; i < n; ++i) reverse[i] = (reverse[i >> 1] | ((i & 1) << l)) >> 1;
 		for (int i = 0; i < n; ++i) if (i < reverse[i]) std::swap(a[i], a[reverse[i]]);
@@ -83,14 +91,15 @@ namespace FFT {
 		for (int i = 0; i < n; ++i) a[i] /= n;
 	}
 
-	template <typename T, typename U>
-	std::vector <U> multiply(const std::vector <T>& A, const std::vector <T>& B) {
+	template <typename T, typename Dummy = char>
+	std::vector <T> multiply(const std::vector <T>& A, const std::vector <T>& B,
+				typename std::enable_if < IndexOf <T, __FFT_IntegerList>::Result == -1, Dummy >::type* = 0) {
+
 		const int& n = A.size(), &m = B.size();
 		int s = get2(n + m);
 
 		for (int i = 0; i < s; ++i) {
-			a[i].r = (i < n ? A[i] : 0);
-			a[i].i = (i < m ? B[i] : 0);
+			a[i] = { i < n ? A[i] : 0, i < m ? B[i] : 0 };
 		}
 
 		fft(a, s);
@@ -103,18 +112,20 @@ namespace FFT {
 		}
 		fft(a, s);
 
-		std::vector <U> result(s);
+		s = n + m - 1;
+		std::vector <T> result(s);
 		for (int i = 0; i < s; ++i) result[i] = a[i].r;
 		return result;
 	}
-	template <typename T>
-	std::vector <long long> multiply(const std::vector <T>& A, const std::vector <T>& B) {
+	template <typename T, typename Dummy = char>
+	std::vector <T> multiply(const std::vector <T>& A, const std::vector <T>& B,
+				typename std::enable_if < IndexOf <T, __FFT_IntegerList>::Result != -1, Dummy >::type* = 0) {
+
 		const int& n = A.size(), &m = B.size();
 		int s = get2(n + m);
 
 		for (int i = 0; i < s; ++i) {
-			a[i].r = (i < n ? A[i] : 0);
-			a[i].i = (i < m ? B[i] : 0);
+			a[i] = { i < n ? A[i] : 0, i < m ? B[i] : 0 };
 		}
 
 		fft(a, s);
@@ -127,8 +138,9 @@ namespace FFT {
 		}
 		fft(a, s);
 
-		std::vector <long long> result(s);
-		for (int i = 0; i < s; ++i) result[i] = (long long)(a[i].r + 0.5);
+		s = n + m - 1;
+		std::vector <T> result(s);
+		for (int i = 0; i < s; ++i) result[i] = T(a[i].r + 0.5);
 		while (result.size() > 1 && result.back() == 0) result.pop_back();
 		return result;
 	}
@@ -180,3 +192,5 @@ namespace FFT {
 		return result;
 	}
 };
+
+#endif
