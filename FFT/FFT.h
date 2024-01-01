@@ -43,16 +43,25 @@ namespace FFT {
 	static inline int lg2(int n) { return 31 - __builtin_clz(n); }
 	static inline int get2(int n) { return 1 << (32 - __builtin_clz(n - 1)); }
 
-	constexpr int LG = 20;
-	constexpr int N = 1 << LG;
+	int LG = 1;
+	int N = 2;
 
-	int reverse[N];
-	cplx a[N], b[N], w[N], iw[N];
-	std::vector <cplx> as, bs, ab, bb;
+	std::vector <int> reverse(N);
+	std::vector <cplx> a(N), b(N), w{cplx(0), cplx(1)}, iw{cplx(0), cplx(1)};
+	std::vector <cplx> as, ab, bs, bb;
 
-	void init() {
-		w[1] = iw[1] = cplx(1);
-		for (int k = 1, u = 2; k < LG; ++k, u <<= 1) {
+	void update_size(int _N) {
+		if (_N <= N) return;
+		int _LG = lg2(_N);
+
+		w.resize(_N);
+		iw.resize(_N);
+		reverse.resize(_N);
+
+		a.resize(_N);
+		b.resize(_N);
+		
+		for (int k = LG, u = 1 << LG; k < _LG; ++k, u <<= 1) {
 			long double A = pi / u;
 			cplx z(cos(A), sin(A)); cplx iz = z.conj();
 			for (int i = u >> 1; i < u; ++i) {
@@ -60,9 +69,12 @@ namespace FFT {
 				iw[i << 1] = iw[i]; iw[i << 1 | 1] = iw[i] * iz;
 			}
 		}
+		N = _N;
+		LG = _LG;
 	}
-	void fft(cplx *a, int n) {
-		const int l = lg2(n);
+
+	void fft(std::vector <cplx>& a) {
+		const int n = a.size(); const int l = lg2(n);
 		for (int i = 1; i < n; ++i) reverse[i] = (reverse[i >> 1] | ((i & 1) << l)) >> 1;
 		for (int i = 0; i < n; ++i) if (i < reverse[i]) std::swap(a[i], a[reverse[i]]);
 		for (int l = 1; l < n; l <<= 1) {
@@ -75,8 +87,8 @@ namespace FFT {
 			}
 		}
 	}
-	void ifft(cplx *a, int n) {
-		const int l = lg2(n);
+	void ifft(std::vector <cplx>& a) {
+		const int n = a.size(); const int l = lg2(n);
 		for (int i = 1; i < n; ++i) reverse[i] = (reverse[i >> 1] | ((i & 1) << l)) >> 1;
 		for (int i = 0; i < n; ++i) if (i < reverse[i]) std::swap(a[i], a[reverse[i]]);
 		for (int l = 1; l < n; l <<= 1) {
@@ -96,13 +108,16 @@ namespace FFT {
 				typename std::enable_if < IndexOf <T, __FFT_IntegerList>::Result == -1, Dummy >::type* = 0) {
 
 		const int& n = A.size(), &m = B.size();
+
 		int s = get2(n + m);
+		update_size(s);
 
 		for (int i = 0; i < s; ++i) {
-			a[i] = { i < n ? A[i] : 0, i < m ? B[i] : 0 };
+			a[i].r = i < n ? A[i] : 0;
+			a[i].i = i < m ? B[i] : 0;
 		}
 
-		fft(a, s);
+		fft(a);
 		cplx r(0, -0.25 / s);
 		for (int i = 0; i <= (s >> 1); ++i) {
 			int j = (s - i) & (s - 1);
@@ -110,7 +125,7 @@ namespace FFT {
 			if (i != j) a[j] = (a[i] * a[i] - (a[j] * a[j]).conj()) * r;
 			a[i] = z;
 		}
-		fft(a, s);
+		fft(a);
 
 		s = n + m - 1;
 		std::vector <T> result(s);
@@ -122,13 +137,16 @@ namespace FFT {
 				typename std::enable_if < IndexOf <T, __FFT_IntegerList>::Result != -1, Dummy >::type* = 0) {
 
 		const int& n = A.size(), &m = B.size();
+
 		int s = get2(n + m);
+		update_size(s);
 
 		for (int i = 0; i < s; ++i) {
-			a[i] = { i < n ? A[i] : 0, i < m ? B[i] : 0 };
+			a[i].r = i < n ? A[i] : 0;
+			a[i].i = i < m ? B[i] : 0;
 		}
 
-		fft(a, s);
+		fft(a);
 		cplx r(0, -0.25 / s);
 		for (int i = 0; i <= (s >> 1); ++i) {
 			int j = (s - i) & (s - 1);
@@ -136,7 +154,7 @@ namespace FFT {
 			if (i != j) a[j] = (a[i] * a[i] - (a[j] * a[j]).conj()) * r;
 			a[i] = z;
 		}
-		fft(a, s);
+		fft(a);
 
 		s = n + m - 1;
 		std::vector <T> result(s);
@@ -147,7 +165,10 @@ namespace FFT {
 
 	std::vector <int> multiply_mod(const std::vector <int>& A, const std::vector <int>& B, const int &Mod) {
 		const int& n = A.size(), &m = B.size();
+
 		int s = get2(n + m);
+		update_size(s);
+
 		if (as.size() < s) as.resize(s);
 		if (ab.size() < s) ab.resize(s);
 		if (bs.size() < s) bs.resize(s);
@@ -157,7 +178,7 @@ namespace FFT {
 			a[i].r = (i < n ? A[i] & ((1 << 15) - 1) : 0);
 			a[i].i = (i < n ? A[i] >> 15 : 0);
 		}
-		fft(a, s);
+		fft(a);
 		for (int i = 0; i < s; ++i) {
 			int j = (s - 1) & (s - i);
 			as[i] = (a[i] + a[j].conj()) * 0.5;
@@ -168,7 +189,7 @@ namespace FFT {
 			b[i].r = (i < m ? B[i] & ((1 << 15) - 1) : 0);
 			b[i].i = (i < m ? B[i] >> 15 : 0);
 		}
-		fft(b, s);
+		fft(b);
 		for (int i = 0; i < s; ++i) {
 			int j = (s - 1) & (s - i);
 			bs[i] = (b[i] + b[j].conj()) * 0.5;
@@ -180,7 +201,7 @@ namespace FFT {
 			b[i] = ab[i] * bb[i];
 		}
 
-		ifft(a, s); ifft(b, s);
+		ifft(a); ifft(b);
 		std::vector <int> result(s);
 		for (int i = 0; i < s; ++i) {
 			int A = (long long)(a[i].r + 0.5) % Mod;

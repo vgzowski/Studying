@@ -4,13 +4,11 @@
 using namespace std;
 
 signed main() {
-	FFT::init();
-
 	{
 		vector <int> a{123341, 7452};
 		vector <int> b{854126, 38855, 33};
 
-		auto c = FFT::multiply_mod( a, b, (int)998244353 );
+		auto c = a;
 
 		for (auto &i : c) cout << i << " ";
 		cout << '\n';
