@@ -32,21 +32,23 @@ public:
 	template <int ModU> friend std::ostream & operator << (std::ostream &, const ModInteger<ModU> &);
 
 	ModInteger() { value = int(0); }
-	ModInteger(int x) { value = (x % Mod + Mod) % Mod; }
-	ModInteger(long long x) { value = (x % Mod + Mod) % Mod; }
+	ModInteger(int x) { value = 0 <= x && x < Mod ? x : (x % Mod + Mod) % Mod; }
+	ModInteger(long long x) { value = 0 <= x && x < Mod ? x : (x % Mod + Mod) % Mod; }
 
 	ModInteger& operator += (const ModInteger& other);
-	ModInteger operator + (const ModInteger& other) const;
 	ModInteger& operator -= (const ModInteger& other);
-	ModInteger operator - (const ModInteger& other) const;
 	ModInteger& operator *= (const ModInteger& other);
-	ModInteger operator * (const ModInteger& other) const;
 	ModInteger& operator /= (const ModInteger& other);
+
+	ModInteger operator + (const ModInteger& other) const;
+	ModInteger operator - (const ModInteger& other) const;
+	ModInteger operator * (const ModInteger& other) const;
 	ModInteger operator / (const ModInteger& other) const;
 
 	ModInteger operator - () const;
 
 	template <int M> friend ModInteger<M> abs(const ModInteger<M> &);
+	template <int M, typename U> friend ModInteger<M> pow( ModInteger<M>, U );
 
 	template <typename U> ModInteger<Mod>& operator ^= (U power);
 	template <typename U> ModInteger<Mod> operator ^ (U power) const;
@@ -87,12 +89,6 @@ ModInteger<Mod>& ModInteger<Mod>::operator += (const ModInteger<Mod>& other) {
 	if (this->value >= Mod) this->value -= Mod;
 	return *this;
 }
-template <int Mod>
-ModInteger<Mod> ModInteger<Mod>::operator + (const ModInteger<Mod>& other) const {
-	ModInteger<Mod> result = *this;
-	result += other;
-	return result;
-}
 
 template <int Mod>
 ModInteger<Mod>& ModInteger<Mod>::operator -= (const ModInteger<Mod>& other) {
@@ -100,42 +96,50 @@ ModInteger<Mod>& ModInteger<Mod>::operator -= (const ModInteger<Mod>& other) {
 	if (this->value < 0) this->value += Mod;
 	return *this;
 }
-template <int Mod>
-ModInteger<Mod> ModInteger<Mod>::operator - (const ModInteger<Mod>& other) const {
-	ModInteger<Mod> result = *this;
-	result -= other;
-	return result;
-}
 
 template <int Mod>
 ModInteger<Mod>& ModInteger<Mod>::operator *= (const ModInteger<Mod>& other) {
 	this->value = (this->value * 1LL * other.value) % Mod;
 	return *this;
 }
+
+template <int Mod>
+ModInteger<Mod> ModInteger<Mod>::operator + (const ModInteger<Mod>& other) const {
+	ModInteger<Mod> result = *this;
+	return result += other;
+}
+
+template <int Mod>
+ModInteger<Mod> ModInteger<Mod>::operator - (const ModInteger<Mod>& other) const {
+	ModInteger<Mod> result = *this;
+	return result -= other;
+}
+
 template <int Mod>
 ModInteger<Mod> ModInteger<Mod>::operator * (const ModInteger<Mod>& other) const {
 	ModInteger<Mod> result = *this;
-	result *= other;
+	return result *= other;
+}
+
+template <int Mod, typename U>
+ModInteger<Mod> pow(ModInteger<Mod> a, U power) {
+	ModInteger<Mod> result(1);
+	for (; power; power >>= 1, a *= a) {
+		if (power & 1) result *= a;
+	}
 	return result;
 }
 
 template <int Mod>
 template <typename U>
 ModInteger<Mod>& ModInteger<Mod>::operator ^= (U power) {
-	ModInteger<Mod> result(1);
-	for (; power; power >>= 1, *this *= *this) {
-		if (power & 1) {
-			result *= *this;
-		}
-	}
-	return (*this = result);
+	return (*this = pow(*this, power));
 }
 template <int Mod>
 template <typename U>
 ModInteger<Mod> ModInteger<Mod>::operator ^ (U power) const {
 	ModInteger<Mod> result = *this;
-	result ^= power;
-	return result;
+	return result ^= power;
 }
 
 template <int Mod>

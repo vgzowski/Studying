@@ -10,6 +10,9 @@ int main() {
 
 	cout << abs(a) << endl;
 
+	cout << pow(a, 4) << endl;
+	cout << a * 128 << endl;
+
 	ModInteger<10> b(3);
 	cout << b * b.inverse() << endl;
 
