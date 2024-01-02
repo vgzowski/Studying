@@ -43,7 +43,11 @@ public:
 	ModInteger operator * (const ModInteger& other) const;
 	ModInteger& operator /= (const ModInteger& other);
 	ModInteger operator / (const ModInteger& other) const;
-	
+
+	ModInteger operator - () const;
+
+	template <int M> friend ModInteger<M> abs(const ModInteger<M> &);
+
 	template <typename U> ModInteger<Mod>& operator ^= (U power);
 	template <typename U> ModInteger<Mod> operator ^ (U power) const;
 
@@ -65,6 +69,16 @@ template <int ModU> std::istream & operator >> (std::istream& in, ModInteger<Mod
 template <int ModU> std::ostream & operator << (std::ostream& out, const ModInteger<ModU>& other) {
 	out << other.value;
 	return out;
+}
+
+template <int Mod>
+ModInteger<Mod> ModInteger<Mod>::operator - () const {
+	return ModInteger<Mod>( value == 0 ? 0 : Mod - value );
+}
+
+template <int Mod>
+ModInteger<Mod> abs(const ModInteger<Mod>& a) {
+	return a;
 }
 
 template <int Mod>
