@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef __MODULAR_INCLUDE
-#define __MODULAR_INCLUDE
-
 #include <iostream>
 
 template <int Number>
@@ -21,6 +18,8 @@ class ModInteger {
 private:
 	int value;
 	static constexpr bool PrimeModulo = IsPrime<Mod>::value;
+
+	static_assert(PrimeModulo);
 
 	static std::pair <long long, long long> gcd_ex(const int &a, const int &b) {
 		if (!b) return std::make_pair(1, 0);
@@ -145,7 +144,7 @@ ModInteger<Mod> ModInteger<Mod>::operator ^ (U power) const {
 template <int Mod>
 ModInteger<Mod> ModInteger<Mod>::inverse() const {
 	if (ModInteger<Mod>::PrimeModulo) {
-		return *this ^ (Mod - 2);
+		return pow(*this, Mod - 2);
 	}
 	else {
 		std::pair <long long, long long> result = gcd_ex( this->value, Mod );
@@ -161,8 +160,7 @@ ModInteger<Mod>& ModInteger<Mod>::operator /= (const ModInteger<Mod>& other) {
 template <int Mod>
 ModInteger<Mod> ModInteger<Mod>::operator / (const ModInteger<Mod>& other) const {
 	ModInteger<Mod> result = *this;
-	result /= other;
-	return result;
+	return result /= other;
 }
 
 template <int Mod>
@@ -198,5 +196,3 @@ template <typename T>
 struct IsModular { enum { value = false }; };
 template <int Mod>
 struct IsModular < ModInteger <Mod> > { enum { value = true }; };
-
-#endif

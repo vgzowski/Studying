@@ -1,11 +1,6 @@
 #include <iostream>
-#include "TypeList.H"
-
-template <bool B, typename T>
-struct enable_if {};
-
-template <typename T>
-struct enable_if <true, T> { typedef T type; };
+#include "typelist.h"
+#include "enableif.h"
 
 typedef TypeList <int, long long, short> IntList;
 typedef TypeList <double, float, long double> FloatList;
