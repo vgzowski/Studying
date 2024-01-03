@@ -1,6 +1,4 @@
 #pragma once
-#ifndef __TYPELIST_INCLUDE
-#define __TYPELIST_INCLUDE
 
 /* EMPTY TYPELIST */
 struct NullType;
@@ -51,5 +49,3 @@ template <typename T>
 struct IndexOf <T, NullType> {
 	static constexpr int Result = -1;
 };
-
-#endif
