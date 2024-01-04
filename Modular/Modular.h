@@ -19,18 +19,20 @@ private:
 	int value;
 	static constexpr bool PrimeModulo = IsPrime<Mod>::value;
 
-	static_assert(PrimeModulo);
-
-	static std::pair <long long, long long> gcd_ex(const int &a, const int &b) {
+	static std::pair <long long, long long> gcd_ex(int a, int b) {
 		if (!b) return std::make_pair(1, 0);
 		std::pair <long long, long long> result = gcd_ex(b, a % b);
 		return std::make_pair( result.second - (a / b) * result.first, result.first );
 	}
 public:
+	enum { __mod_value = Mod };
+	explicit operator int() const { return value; }
+
 	template <int ModU> friend std::istream & operator >> (std::istream &, ModInteger<ModU> &);
 	template <int ModU> friend std::ostream & operator << (std::ostream &, const ModInteger<ModU> &);
 
 	ModInteger() { value = int(0); }
+	ModInteger(size_t x) { value = x < Mod ? x : x % Mod; }
 	ModInteger(int x) { value = 0 <= x && x < Mod ? x : (x % Mod + Mod) % Mod; }
 	ModInteger(long long x) { value = 0 <= x && x < Mod ? x : (x % Mod + Mod) % Mod; }
 

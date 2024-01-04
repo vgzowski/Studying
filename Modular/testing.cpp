@@ -8,6 +8,17 @@ int main() {
 	cout << a * a.inverse() << endl;
 	cout << -a << endl;
 
+	int C = static_cast<int>(a);
+	cout << "! " << C << endl;
+
+	vector < ModInteger <13> > vec{1, 2, 17};
+	auto vec1 = vector <int> (begin(vec), end(vec));
+
+	for (auto &x : vec) cout << x << " ";
+	cout << endl;
+	for (auto &x : vec1) cout << x << " ";
+	cout << endl;
+
 	cout << abs(a) << endl;
 
 	cout << pow(a, 4) << endl;
