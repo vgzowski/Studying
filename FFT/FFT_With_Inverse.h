@@ -1,6 +1,4 @@
 #pragma once
-#ifndef __FFT_INVERSE_INCLUDE
-#define __FFT_INVERSE_INCLUDE
 
 #include <iostream>
 #include <cmath>
@@ -8,7 +6,7 @@
 
 #include "../CompileTime/TypeList.H"
 
-typedef TypeList <short int, int, long, long long> __FFT_IntegerList;
+typedef typelist <short int, int, long, long long> __FFT_IntegerList;
 
 namespace FFT_Inverse {
 	constexpr long double pi = acos(-1);
@@ -112,7 +110,7 @@ namespace FFT_Inverse {
 
 	template <typename T, typename Dummy = char>
 	std::vector <T> multiply(const std::vector <T>& A, const std::vector <T>& B,
-				typename std::enable_if < IndexOf <T, __FFT_IntegerList>::Result == -1, Dummy >::type* = 0) {
+				typename std::enable_if < IndexOf <T, __FFT_IntegerList>::value == -1, Dummy >::type* = 0) {
 
 		const int& n = A.size(), &m = B.size();
 
@@ -141,7 +139,7 @@ namespace FFT_Inverse {
 	}
 	template <typename T, typename Dummy = char>
 	std::vector <T> multiply(const std::vector <T>& A, const std::vector <T>& B,
-				typename std::enable_if < IndexOf <T, __FFT_IntegerList>::Result != -1, Dummy >::type* = 0) {
+				typename std::enable_if < IndexOf <T, __FFT_IntegerList>::value != -1, Dummy >::type* = 0) {
 
 		const int& n = A.size(), &m = B.size();
 
@@ -223,5 +221,3 @@ namespace FFT_Inverse {
 		return result;
 	}
 };
-
-#endif
