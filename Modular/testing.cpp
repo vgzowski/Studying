@@ -1,5 +1,6 @@
-#include <bits/stdc++.h>
 #include "Modular.h"
+#include <vector>
+#include <cassert>
 
 using namespace std;
 
@@ -32,4 +33,43 @@ int main() {
 	static_assert( IsModular<ModInteger<11>>::value );
 	static_assert( IsModular<ModInteger<0>>::value );
 	static_assert( !IsModular<int>::value );
+
+	const int md = 127;
+	typedef ModInteger<md> mint;
+
+	for (int i = 1; i < md; ++i) {
+		mint x(i);
+		auto sq = x.sqrt();
+
+		optional<int> found;
+		for (int j = 1; j < md; ++j) {
+			if (((j * j) % md) == i) {
+				found = j;
+				break;
+			}
+		}
+		assert((found == nullopt) == (sq == nullopt));
+		if (sq.has_value()) {
+			auto z = sq.value();
+			assert(z * z == x);
+		}
+	}
+	for (int i = 1; i < md; ++i) {
+		for (int j = 1; j < md; ++j) {
+			mint a(i), b(j);
+			optional<int> found;
+			auto _lg = log(a, b);
+			for (int x = 0; x < md; ++x) {
+				if (pow(a, x) == b) {
+					found = x;
+					break;
+				}
+			}
+			assert((found == nullopt) == (_lg == nullopt));
+			if (_lg.has_value()) {
+				auto z = _lg.value();
+				assert(pow(a, z) == b);
+			}
+		}
+	}
 }
