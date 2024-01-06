@@ -2,22 +2,16 @@
 
 #include <iostream>
 
-template <int Number>
-struct IsPrime {
-	static constexpr bool __check() {
-		for (int i = 2; i * i <= Number; ++i) {
-			if (Number % i == 0) return false;
-		}
-		return true;
-	}
-	enum { value = __check() };
-};
+#include "ModuloHelper.h"
+using namespace ModuloHelper;
 
 template <int Mod>
 class ModInteger {
 private:
 	int value;
 	static constexpr bool PrimeModulo = IsPrime<Mod>::value;
+	static constexpr int Phi = Phi<Mod>::value;
+	static constexpr int G = PrimitiveRoot<Mod>::value;
 
 	static std::pair <long long, long long> gcd_ex(int a, int b) {
 		if (!b) return std::make_pair(1, 0);
