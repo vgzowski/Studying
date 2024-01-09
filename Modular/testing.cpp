@@ -1,11 +1,18 @@
-#include "Modular.h"
 #include <vector>
+#include <iostream>
+#include <cmath>
+#include <vector>
+#include <unordered_map>
+#include <optional>
 #include <cassert>
+#include "Modular.h"
 
 using namespace std;
 
 int main() {
 	ModInteger<11> a(3);
+	initialiseInverse<11>(10);
+
 	cout << a * a.inverse() << endl;
 	cout << -a << endl;
 
@@ -34,7 +41,7 @@ int main() {
 	static_assert( IsModular<ModInteger<0>>::value );
 	static_assert( !IsModular<int>::value );
 
-	const int md = 127;
+	const int md = 191;
 	typedef ModInteger<md> mint;
 
 	for (int i = 1; i < md; ++i) {
