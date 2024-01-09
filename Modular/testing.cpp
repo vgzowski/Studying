@@ -13,6 +13,8 @@ int main() {
 	ModInteger<11> a(3);
 	initialiseInverse<11>(10);
 
+	cout << sqrt(a).value() << endl;
+
 	cout << a * a.inverse() << endl;
 	cout << -a << endl;
 
