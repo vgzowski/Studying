@@ -157,7 +157,7 @@ ModInteger<Mod> ModInteger<Mod>::inverse() const {
 		return _inverses[this->value];
 	}
 	if (ModInteger<Mod>::PrimeModulo) {
-		return pow(*this, Phi);
+		return pow(*this, Phi - 1);
 	}
 	else {
 		std::pair <long long, long long> result = gcd_ex( this->value, Mod );
