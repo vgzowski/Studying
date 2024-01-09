@@ -2,20 +2,22 @@
 
 #include <iostream>
 #include <cmath>
+#include <vector>
 #include <unordered_map>
 #include <optional>
 
 #include "ModuloHelper.h"
-using namespace ModuloHelper;
 
 template <int Mod>
 class ModInteger {
 private:
 	int value;
-	static constexpr bool PrimeModulo = IsPrime<Mod>::value;
-	static constexpr int Phi = Phi<Mod>::value;
-	static constexpr int G = PrimitiveRoot<Mod>::value;
+	static constexpr bool PrimeModulo = ModuloHelper::IsPrime<Mod>::value;
+	static constexpr int Phi = ModuloHelper::Phi<Mod>::value;
+	static constexpr int G = ModuloHelper::PrimitiveRoot<Mod>::value;
 	static constexpr int msqrt = int(ceil(sqrt(Mod))) + 1;
+
+	inline static std::vector < ModInteger > _inverses = std::vector < ModInteger> {0, 1};
 
 	static std::pair <long long, long long> gcd_ex(int a, int b) {
 		if (!b) return std::make_pair(1, 0);
@@ -24,6 +26,7 @@ private:
 	}
 public:
 	static_assert(Mod > 0, "Mod must be a positive integer");
+
 	enum { __mod_value = Mod };
 	explicit operator int() const { return value; }
 
@@ -58,6 +61,8 @@ public:
 	ModInteger inverse() const;
 	std::optional<ModInteger> sqrt() const;
 	std::optional<ModInteger> kroot(int) const;
+
+	template <int M> friend void initialiseInverse(size_t);
 
 	bool operator != (const ModInteger& other) const;
 	bool operator == (const ModInteger& other) const;
@@ -148,8 +153,11 @@ ModInteger<Mod> ModInteger<Mod>::operator ^ (U power) const {
 
 template <int Mod>
 ModInteger<Mod> ModInteger<Mod>::inverse() const {
+	if (this->value < _inverses.size()) {
+		return _inverses[this->value];
+	}
 	if (ModInteger<Mod>::PrimeModulo) {
-		return pow(*this, Mod - 2);
+		return pow(*this, Phi);
 	}
 	else {
 		std::pair <long long, long long> result = gcd_ex( this->value, Mod );
@@ -229,6 +237,20 @@ bool ModInteger<Mod>::operator > (const ModInteger<Mod>& other) const {
 template <int Mod>
 bool ModInteger<Mod>::operator >= (const ModInteger<Mod>& other) const {
 	return !(*this < other);
+}
+
+template <int Mod>
+void initialiseInverse(size_t n) {
+	static_assert( ModInteger<Mod>::PrimeModulo );
+	size_t _prev_size = ModInteger<Mod>::_inverses.size();
+	ModInteger<Mod>::_inverses.resize(n + 1);
+
+	if (!_prev_size) {
+		ModInteger<Mod>::_inverses[1] = 1;
+	}
+	for (size_t i = std::max(2, (int)_prev_size); i <= n; ++i) {
+		ModInteger<Mod>::_inverses[i] = ModInteger<Mod>::_inverses[Mod % i] * ModInteger<Mod>(Mod - Mod / i);
+	}
 }
 
 /*
