@@ -46,7 +46,7 @@ int main() {
 
 	for (int i = 1; i < md; ++i) {
 		mint x(i);
-		auto sq = x.sqrt();
+		auto sq = sqrt(x);
 
 		optional<int> found;
 		for (int j = 1; j < md; ++j) {

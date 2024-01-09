@@ -59,8 +59,8 @@ public:
 	template <typename U> ModInteger<Mod> operator ^ (U power) const;
 
 	ModInteger inverse() const;
-	std::optional<ModInteger> sqrt() const;
-	std::optional<ModInteger> kroot(int) const;
+	template <int M> friend std::optional<ModInteger<M>> sqrt(const ModInteger<M> &);
+	template <int M> friend std::optional<ModInteger<M>> kroot(const ModInteger<M> &, int);
 
 	template <int M> friend void initialiseInverse(size_t);
 
@@ -188,19 +188,19 @@ std::optional<int> log(const ModInteger<Mod>& a, const ModInteger<Mod>& b) {
 }
 
 template <int Mod>
-std::optional<ModInteger<Mod>> ModInteger<Mod>::kroot(int k) const {
+std::optional<ModInteger<Mod>> kroot(const ModInteger<Mod>& num, int k) {
 	static_assert(ModInteger<Mod>::PrimeModulo, "Not a prime modulo");
 	static_assert(ModInteger<Mod>::G != -1, "Primitive root not found, please report to @vgzowksi");
 	ModInteger<Mod> g(ModInteger<Mod>::G);
 	ModInteger<Mod> gk = pow(g, k);
-	auto __lg = log(gk, *this);
+	auto __lg = log(gk, num);
 	if (!__lg.has_value()) return std::nullopt;
 	return pow(g, __lg.value());
 }
 
 template <int Mod>
-std::optional<ModInteger<Mod>> ModInteger<Mod>::sqrt() const {
-	return kroot(2);
+std::optional<ModInteger<Mod>> sqrt(const ModInteger<Mod>& cur) {
+	return kroot(cur, 2);
 }
 
 template <int Mod>
