@@ -17,6 +17,8 @@ private:
 	static constexpr int G = ModuloHelper::PrimitiveRoot<Mod>::value;
 	static constexpr int msqrt = int(ceil(sqrt(Mod))) + 1;
 
+	inline static int _cache = 1;
+	inline static int _cache_inverse = 1;
 	inline static std::vector < ModInteger > _inverses = std::vector < ModInteger> {0, 1};
 
 	static std::pair <long long, long long> gcd_ex(int a, int b) {
@@ -156,12 +158,21 @@ ModInteger<Mod> ModInteger<Mod>::inverse() const {
 	if (this->value < _inverses.size()) {
 		return _inverses[this->value];
 	}
+	if (this->value == ModInteger<Mod>::_cache) {
+		return _cache_inverse;
+	}
 	if (ModInteger<Mod>::PrimeModulo) {
-		return pow(*this, Phi - 1);
+		_cache = this->value;
+		ModInteger<Mod> result = pow(*this, Phi - 1);
+		_cache_inverse = result.value;
+		return result;
 	}
 	else {
-		std::pair <long long, long long> result = gcd_ex( this->value, Mod );
-		return ModInteger<Mod>(result.first);
+		_cache = this->value;
+		std::pair <long long, long long> _result = gcd_ex( this->value, Mod );
+		ModInteger<Mod> result(_result.first);
+		_cache_inverse = result.value;
+		return result;
 	}
 }
 
