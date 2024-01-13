@@ -10,8 +10,21 @@
 using namespace std;
 
 int main() {
+	ModInteger<998244353> H(1);
+	auto S = sqrt(H);
+	if (S.has_value()) {
+		cout << "! " << S.value() << endl;
+	}
+	else {
+		cout << "! No value" << endl;
+	}
+
 	ModInteger<11> a(3);
 	initialiseInverse<11>(10);
+	for (int i = 1; i <= 10; ++i) {
+		cout << (ModInteger<11>(i)).inverse() * i << " ";
+	}
+	cout << endl;
 
 	cout << sqrt(a).value() << endl;
 
@@ -36,6 +49,7 @@ int main() {
 
 	ModInteger<10> b(3);
 	cout << b * b.inverse() << endl;
+
 
 	static_assert( IsModular<ModInteger<-5>>::value );
 	static_assert( IsModular<ModInteger<123>>::value );
