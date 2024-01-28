@@ -4,7 +4,7 @@
 template <
 	class A,
 	class B,
-	typename VectorEraserPolicy = SafeVectorEraser
+	typename VectorEraserPolicy = SafeVectorEraser < std::make_pair <A, B> >
 >
 class VectorStoringPolicy {
 private:
