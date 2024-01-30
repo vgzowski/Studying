@@ -11,7 +11,7 @@ template <
 	typename CachePolicy,
 	typename ErrorPolicy
 >
-class Creator : ICreator {
+class Creator : public ICreator {
 public:
 	void print() override {
 		std::cout << "SizePolicy is: " << sizePolicy.str << std::endl;
