@@ -29,7 +29,7 @@ public:
 class TopG : public IsBillionaire {
 public:
 	void spend1mil() override {
-		std::cout << "Just spent 1 mil on a clock" << std::endl;
+		std::cout << "Just spent 1 mil on a watch" << std::endl;
 	}
 	~TopG() {}
 };
