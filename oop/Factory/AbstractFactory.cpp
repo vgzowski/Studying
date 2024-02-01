@@ -81,4 +81,13 @@ private:
 };
 
 int main() {
+	HouseDecorator hs( std::make_unique < CasualFactory > () );
+	hs.decorate();
+	hs.decorate();
+	hs.changeFactory( std::make_unique < VictorianFactory> () );
+	hs.decorate();
+	hs.changeFactory( std::make_unique < VictorianFactory> () );
+	hs.decorate();
+	hs.changeFactory( std::make_unique < CasualFactory> () );
+	hs.decorate();
 }
