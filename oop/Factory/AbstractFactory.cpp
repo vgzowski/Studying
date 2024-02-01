@@ -72,6 +72,7 @@ public:
 		std::unique_ptr <Table> table = factory->createTable();
 		chair->Sit();
 		table->PlaceObj("Vase");
+		std::cout << std::endl;
 	}
 	void changeFactory( std::unique_ptr <Factory> ptr ) {
 		factory = std::move(ptr);
