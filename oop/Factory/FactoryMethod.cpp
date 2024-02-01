@@ -57,43 +57,44 @@ public:
 
 class NotificationFactory {
 public:
-	std::unique_ptr < Notification > create(std::string type, std::string address) {
-		if (type == "email") return std::make_unique< EmailNotification >(address);
-		else if (type == "sms") return std::make_unique< SMSNotification >(address);
-		else if (type == "push") return std::make_unique< PushNotification >(address);
-		else throw std::runtime_error("Incorrect notification type");
+	virtual std::unique_ptr < Notification > create(std::string address) = 0;
+};
+
+class EmailCreator : public NotificationFactory {
+public:
+	std::unique_ptr < Notification > create(std::string address) override {
+		return std::make_unique < EmailNotification >(address);
+	}
+};
+class SMSCreator : public NotificationFactory {
+public:
+	std::unique_ptr < Notification > create(std::string address) override {
+		return std::make_unique < SMSNotification >(address);
+	}
+};
+class PushCreator : public NotificationFactory {
+public:
+	std::unique_ptr < Notification > create(std::string address) override {
+		return std::make_unique < PushNotification >(address);
 	}
 };
 
 class SPAM_System {
 public:
-	SPAM_System(NotificationFactory _factory) : factory(factory) {}
-	void send_spam(std::string type, std::string user, std::string message) {
-		std::unique_ptr < Notification > new_notification = factory.create( type, user );
+	SPAM_System(std::unique_ptr < NotificationFactory > ptr) {
+		factory = std::move(ptr);
+	}
+	void send_spam(std::string user, std::string message) {
+		std::unique_ptr < Notification > new_notification = factory->create( user );
 		new_notification->setMessage(message);
 		new_notification->send();
 	}
+	void changeFactory( std::unique_ptr < NotificationFactory > ptr ) {
+		factory = std::move(ptr);
+	}
 private:
-	NotificationFactory factory;
+	std::unique_ptr < NotificationFactory > factory;
 };
 
 int main() {
-	NotificationFactory factory;
-	SPAM_System spammer(factory);
-
-	spammer.send_spam( "email", "IvanIvanovich@pochta.ru", "Subscribe to vgzowski on github" );
-
-	spammer.send_spam( "email", "IvanovIvan228@pochta.ru", "Subscribe to vgzowski on github" );
-
-	spammer.send_spam( "push", "IvanIvanovich phone", "Subscribe to vgzowski on github" );
-
-	spammer.send_spam( "push", "IvanIvanovich smart watch", "Subscribe to vgzowski on github" );
-
-	spammer.send_spam( "sms", "+1-23-34-5678-9-10", "Subscribe to vgzowski on github" );
-
-	spammer.send_spam( "push", "IvanIvanovich TV", "Subscribe to vgzowski on github" );
-
-	spammer.send_spam( "email", "IvanIvanovichFakeEmail@pochta.ru", "Subscribe to vgzowski on github" );
-
-	spammer.send_spam( "sms", "+12-34-567-89", "Subscribe to vgzowski on github" );
 }
