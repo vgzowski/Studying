@@ -78,4 +78,22 @@ private:
 };
 
 int main() {
+	NotificationFactory factory;
+	SPAM_System spammer(factory);
+
+	spammer.send_spam( "email", "IvanIvanovich@pochta.ru", "Subscribe to vgzowski on github" );
+
+	spammer.send_spam( "email", "IvanovIvan228@pochta.ru", "Subscribe to vgzowski on github" );
+
+	spammer.send_spam( "push", "IvanIvanovich phone", "Subscribe to vgzowski on github" );
+
+	spammer.send_spam( "push", "IvanIvanovich smart watch", "Subscribe to vgzowski on github" );
+
+	spammer.send_spam( "sms", "+1-23-34-5678-9-10", "Subscribe to vgzowski on github" );
+
+	spammer.send_spam( "push", "IvanIvanovich TV", "Subscribe to vgzowski on github" );
+
+	spammer.send_spam( "email", "IvanIvanovichFakeEmail@pochta.ru", "Subscribe to vgzowski on github" );
+
+	spammer.send_spam( "sms", "+12-34-567-89", "Subscribe to vgzowski on github" );
 }
