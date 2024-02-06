@@ -16,13 +16,17 @@ public:
 	bool full() const {
 		return cache_.size() == MAX_SIZE;
 	}
+	bool present(const key_t& key) {
+		return iters_.find(key) != iters_.end();
+	}
+
 	iterator latest() const {
 		return --cache_.end();
 	}
 
 	void refer(const key_t& key) {
-		if (iters_.find(key) == iters_.end()) {
-			if (iters_.size() == MAX_SIZE) {
+		if (present(key)) {
+			if (full()) {
 				iterator last = latest();
 				iters_.erase(*last);
 				cache_.erase(last);
@@ -33,9 +37,6 @@ public:
 		}
 		cache_.push_front(key);
 		iters_[key] = cache_.begin();
-	}
-	bool present(const key_t& key) {
-		return iters_.find(key) != iters_.end();
 	}
 private:
 	std::list < key_t > cache_;
