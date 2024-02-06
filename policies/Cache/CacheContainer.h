@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 #include <unordered_map>
+#include "NOCache.h"
 
 template <
 	class key_t,
@@ -15,7 +16,8 @@ public:
 			iterator latest = cache_.latest();
 			values_.erase(*latest);
 		}
-		if (cache_.refer( key )) values_[key] = value;
+		cache_.refer(key);
+		values_[key] = value;
 	}
 	std::optional < value_t > get( const key_t& key ) {
 		if (cache_.present(key)) {
@@ -30,4 +32,21 @@ private:
 	CachePolicy < key_t, MAX_SIZE > cache_;
 	std::unordered_map < key_t, value_t > values_;
 	typedef typename CachePolicy < key_t, MAX_SIZE>::iterator iterator;
+};
+
+template <
+	class key_t,
+	class value_t,
+	int MAX_SIZE
+>
+class Container < key_t, value_t, NOCache, MAX_SIZE > {
+public:
+	void insert( const key_t& key, const value_t& value ) {
+		// DO NOTHING
+	}
+	std::optional < value_t > get( const key_t& key ) {
+		return std::nullopt;
+	}
+private:
+	NOCache < key_t, MAX_SIZE > cache_;
 };
