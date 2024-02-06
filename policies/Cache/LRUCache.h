@@ -24,8 +24,8 @@ public:
 		return --cache_.end();
 	}
 
-	void refer(const key_t& key) {
-		if (present(key)) {
+	bool refer(const key_t& key) {
+		if (!present(key)) {
 			if (full()) {
 				iterator last = latest();
 				iters_.erase(*last);
@@ -37,6 +37,7 @@ public:
 		}
 		cache_.push_front(key);
 		iters_[key] = cache_.begin();
+		return true;
 	}
 private:
 	std::list < key_t > cache_;
