@@ -15,8 +15,7 @@ public:
 			iterator latest = cache_.latest();
 			values_.erase(*latest);
 		}
-		cache_.refer( key );
-		values_[key] = value;
+		if (cache_.refer( key )) values_[key] = value;
 	}
 	std::optional < value_t > get( const key_t& key ) {
 		if (cache_.present(key)) {
