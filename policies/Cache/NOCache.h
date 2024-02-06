@@ -9,7 +9,7 @@ template <
 class NOCache {
 public:
 	static_assert(MAX_SIZE == 0);
-	typedef key_t* iterator;
+	typedef void* iterator;
 
 	NOCache() {}
 	bool full() const {
@@ -20,12 +20,10 @@ public:
 	}
 
 	iterator latest() const {
-		return &default_key;
+		return nullptr;
 	}
 
-	bool refer(const key_t& key) {
-		return false;
+	void refer(const key_t& key) {
+		// DO NOTHING
 	}
-private:
-	static inline key_t default_key = key_t();
 };
