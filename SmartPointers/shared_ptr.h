@@ -22,12 +22,14 @@ public:
 		return *this;
 	}
 	sPtr(sPtr&& other) noexcept : ptr_(other.ptr_), refCount_(other.refCount_) {
-		other.ptr_ = other.refCount_ = nullptr;
+		other.ptr_ = nullptr;
+		other.refCount_ = nullptr;
 	}
 	sPtr& operator = (sPtr&& other) noexcept {
 		ptr_ = other.ptr_;
 		refCount_ = other.refCount_;
-		other.ptr_ = other.refCount_ = nullptr;
+		other.ptr_ = nullptr;
+		other.refCount_ = nullptr;
 		return *this;
 	}
 	~sPtr() {
@@ -38,6 +40,7 @@ public:
 
 	T* operator -> () { return ptr_; }
 	T operator * () { return *ptr_; }
+	int getCount() { return (refCount_ ? *refCount_ : 0); }
 private:
 	int *refCount_;
 	T* ptr_;
