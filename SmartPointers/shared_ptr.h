@@ -40,7 +40,7 @@ public:
 
 	T* operator -> () { return ptr_; }
 	T operator * () { return *ptr_; }
-	int getCount() { return (refCount_ ? *refCount_ : 0); }
+	int use_count() { return (refCount_ ? *refCount_ : 0); }
 private:
 	int *refCount_;
 	T* ptr_;
