@@ -35,6 +35,9 @@ public:
 			delete ptr_;
 		}
 	}
+
+	T* operator -> () { return ptr_; }
+	T operator * () { return *ptr_; }
 private:
 	int *refCount_;
 	T* ptr_;
