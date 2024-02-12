@@ -31,7 +31,7 @@ public:
 		return *this;
 	}
 	~sPtr() {
-		if (refCount_ && !(*refCount)) {
+		if (refCount_ && !(*refCount_)) {
 			delete ptr_;
 		}
 	}
