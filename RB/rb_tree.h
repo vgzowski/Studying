@@ -20,7 +20,7 @@ public:
 
 private:
 	struct Node {
-		color_t col;
+		bool col;
 		T value;
 		Node *l = nullptr, *r = nullptr, *p = nullptr;
 
