@@ -1,4 +1,5 @@
 #pragma once
+#include <ostream>
 
 namespace RB {
 
@@ -12,6 +13,9 @@ class rb_tree {
 public:
 
 	rb_tree() {}
+
+	template <class U>
+	friend std::ostream & operator << (std::ostream &, const rb_tree<U> &);
 
 	void insert(T x) {
 		if (root_ == nullptr) return void(root_ = new Node{ black, x });
@@ -32,86 +36,98 @@ private:
 	int size_ = 0;
 	Node* root_ = nullptr;
 
-	Node* rotateL(Node* node) {
-		Node* x = node->r;
-		Node* y = x->l;
-		x->l = node;
-		node->r = y;
-		node->p = x;
-		if (y != nullptr) {
-			y->p = node;
-		}
-		return x;
-	}
-	Node* rotateR(Node* node) {
-		Node* x = node->l;
+	void rotateL(Node* x) {
 		Node* y = x->r;
-		x->r = node;
-		node->l = y;
-		node->p = x;
-		if (y != nullptr) {
-			y->p = node;
-		}
-		return x;
+		x->r = y->l;
+		if (y->l != nullptr) x->r->p = x;
+		y->p = x;
+		if (x->p == nullptr) root_ = y;
+		else if (x == x->p->l) x->p->l = y;
+		else x->p->r = y;
+		y->l = x;
+		x->p = y;
+	}
+	void rotateR(Node* x) {
+		Node* y = x->l;
+		x->l = y->r;
+		if (y->r != nullptr) x->r->p = x;
+		y->p = x;
+		if (x->p == nullptr) root_ = y;
+		else if (x == x->p->l) x->p->l = y;
+		else x->p->r = y;
+		y->r = x;
+		x->p = y;
 	}
 
-	Node* insert_(Node* node, T x) {
+	Node* insert_(Node*& node, T x) {
 		if (node == nullptr) {
-			return new Node{ red, x };
+			return (node = new Node{ red, x });
 		}
 		else if (x < node->value) {
-			return insert_(node->l, x);
+			Node* result = insert_(node->l, x);
+			node->l->p = node;
+			return result;
 		}
 		else {
-			return insert_(node->r, x);
+			Node* result = insert_(node->r, x);
+			node->r->p = node;
+			return result;
 		}
 	}
 	void insert_(T x) {
 		Node* K = insert_(root_, x);
 		Node* P = K->p;
-		Node* S = (K == P->l ? P->r : P->l);
 
 		if (P->col == black) return;
 		
 		Node* G = P->p;
 		Node* U = (P == G->l ? G->r : G->l);
 
+		return;
 		if (U && P->col == red && U->col == red) {
 			P->flip();
 			if (G != root_) G->flip();
 			U->flip();
 			return;
 		}
+		return;
 
 		if (P == G->r && K == P->r) {
 			P->flip();
 			G->flip();
-			G = rotateL(G);
+			rotateL(G);
 		}
 		else if (P == G->l && K == P->l) {
 			P->flip();
 			G->flip();
-			G = rotateR(G);
+			rotateR(G);
 		}
 		else if (P == G->r && K == P->l) {
-			P = rotateR(P);
-			K = P->r;
-			S = P->l;
-
+			rotateR(P);
 			P->flip();
 			G->flip();
-			G = rotateL(G);
+			rotateL(G);
 		}
 		else {
-			P = rotateL(P);
-			K = P->l;
-			S = P->r;
-
+			rotateL(P);
 			P->flip();
 			G->flip();
-			G = rotateR(G);
+			rotateR(G);
 		}
 	}
+
+	void dump(Node* node, std::ostream& out) const {
+		if (node == nullptr) return;
+		dump(node->l, out);
+		out << node->value << " ";
+		dump(node->r, out);
+	}
 };
+
+template <class T>
+std::ostream & operator << (std::ostream& out, const rb_tree<T>& t) {
+	t.dump(t.root_, out);
+	return out;
+}
 
 }
