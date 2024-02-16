@@ -41,6 +41,7 @@ private:
 		if (y != nullptr) {
 			y->p = node;
 		}
+		return x;
 	}
 	Node* rotateR(Node* node) {
 		Node* x = node->l;
