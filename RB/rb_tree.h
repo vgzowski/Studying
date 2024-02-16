@@ -69,7 +69,7 @@ private:
 	void insert_(T x) {
 		Node* K = insert_(root_, x);
 		Node* P = K->p;
-		Node* S = (K == S->l ? S->r : S->l);
+		Node* S = (K == P->l ? P->r : P->l);
 
 		if (P->col == black) return;
 		
