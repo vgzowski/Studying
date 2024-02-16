@@ -20,6 +20,7 @@ public:
 	void insert(T x) {
 		if (root_ == nullptr) return void(root_ = new Node{ black, x });
 		insert_(x);
+		++size_;
 	}
 
 private:
