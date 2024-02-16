@@ -6,7 +6,6 @@
 namespace RB {
 
 enum color_t { black = 0, red };
-enum rotation_t { left = 0, right, left_right, right_left };
 
 template <
 	class T
@@ -94,10 +93,13 @@ private:
 			node->l->p = node;
 			return result;
 		}
-		else {
+		else if (node->value < x) {
 			Node* result = insert_(node->r, x);
 			node->r->p = node;
 			return result;
+		}
+		else {
+			assert(false);
 		}
 	}
 	void insert_(T x) {
@@ -142,6 +144,7 @@ private:
 
 private:
 	Node* find_node_(Node* node, T x) {
+		assert(node != nullptr);
 		while (node != null_v) {
 			if (node->value == x) return node;
 			else if (node->value > x) node = node->l;
@@ -172,7 +175,7 @@ private:
 		while (x != root_ && x->col == black) {
 			if (x == x->p->l) {
 				s = x->p->r;
-				if (x->col == red) {
+				if (s->col == red) {
 					s->col = black;
 					x->p->col = red;
 					rotateL(x->p);
@@ -200,7 +203,7 @@ private:
 			}
 			else {
 				s = x->p->l;
-				if (x->col == red) {
+				if (s->col == red) {
 					s->col = black;
 					x->p->col = red;
 					rotateR(x->p);
@@ -275,11 +278,11 @@ private:
 
 private:
 	int get_height(Node* x) {
-		if (x == null_v) return 0;
+		if (x == null_v || x == nullptr) return 0;
 		return 1 + std::max(get_height(x->l), get_height(x->r));
 	}
 	void check_black_nodes(Node *x, int &rf, int cnt) {
-		if (!x) return;
+		if (x == null_v || x == nullptr) return;
 		if (x->l == null_v) {
 			if (rf == -1) rf = cnt + 1;
 			else assert(cnt + 1 == rf);
@@ -288,10 +291,10 @@ private:
 			if (rf == -1) rf = cnt + 1;
 			else assert(cnt + 1 == rf);
 		}
-		if (x->l) {
+		if (x->l != null_v) {
 			check_black_nodes(x->l, rf, cnt + (x->l->col == black));
 		}
-		if (x->r) {
+		if (x->r != null_v) {
 			check_black_nodes(x->r, rf, cnt + (x->r->col == black));
 		}
 	}
