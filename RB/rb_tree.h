@@ -14,21 +14,31 @@ template <
 class rb_tree {
 public:
 
-	rb_tree() {}
+	rb_tree() : root_(null_v) {}
 
 	template <class U>
 	friend std::ostream & operator << (std::ostream &, const rb_tree<U> &);
 
 	void insert(T x) {
 		++size_;
-		if (root_ == nullptr) return void(root_ = new Node{ black, x });
-		insert_(x);
+		if (root_ == null_v) {
+			root_ = new Node{ black, x, null_v, null_v, nullptr };
+		}
+		else {
+			insert_(x);
+		}
 	}
-	void erase(T x);
-	bool search(T x);
-	T lower_bound(T x);
-	T min();
-	T max();
+	void erase(T x) {
+		if (erase_(x)) {
+			--size_;
+		}
+	}
+	bool search(T x) {
+		return find_node_(root_, x) != null_v;
+	}
+
+	T min() { return min_node_(root_)->value; }
+	T max() { return max_node_(root_)->value; }
 
 	void check_validity() {
 		int cnst = 2 * log2(size_ + 1) + 5;
@@ -47,13 +57,14 @@ private:
 	};
 
 	int size_ = 0;
-	Node* root_ = nullptr;
+	Node* null_v = new Node{black, 0, nullptr, nullptr, nullptr};
+	Node* root_;
 
 private:
 	void rotateL(Node* x) {
 		Node* y = x->r;
 		x->r = y->l;
-		if (y->l != nullptr) x->r->p = x;
+		if (y->l != null_v) x->r->p = x;
 		y->p = x;
 		if (x->p == nullptr) root_ = y;
 		else if (x == x->p->l) x->p->l = y;
@@ -64,7 +75,7 @@ private:
 	void rotateR(Node* x) {
 		Node* y = x->l;
 		x->l = y->r;
-		if (y->r != nullptr) x->r->p = x;
+		if (y->r != null_v) x->r->p = x;
 		y->p = x;
 		if (x->p == nullptr) root_ = y;
 		else if (x == x->p->l) x->p->l = y;
@@ -75,8 +86,8 @@ private:
 
 private:
 	Node* insert_(Node*& node, T x) {
-		if (node == nullptr) {
-			return (node = new Node{ red, x });
+		if (node == null_v) {
+			return (node = new Node{ red, x, null_v, null_v, nullptr });
 		}
 		else if (x < node->value) {
 			Node* result = insert_(node->l, x);
@@ -91,17 +102,14 @@ private:
 	}
 	void insert_(T x) {
 		Node* K = insert_(root_, x);
-		assert(K->p != nullptr); // REMOVE ASSERTS
 		Node* P = K->p;
 
 		if (P->col == black) return;
 
-		assert(P->p != nullptr); // REMOVE ASSERTS
-		
 		Node* G = P->p;
 		Node* U = (P == G->l ? G->r : G->l);
 
-		if (U != nullptr && P->col == red && U->col == red) {
+		if (U != null_v && P->col == red && U->col == red) {
 			P->flip();
 			U->flip();
 			if (G != root_) G->flip();
@@ -133,17 +141,26 @@ private:
 	}
 
 private:
-	Node* find_node_(T x) {
-		Node* node = root_;
-		while (node != nullptr) {
+	Node* find_node_(Node* node, T x) {
+		while (node != null_v) {
 			if (node->value == x) return node;
 			else if (node->value > x) node = node->l;
 			else node = node->r;
 		}
-		return nullptr;
+		return null_v;
+	}
+	Node* min_node_(Node* x) {
+		if (x == null_v) return null_v;
+		while (x->l != null_v) x = x->l;
+		return x;
+	}
+	Node* max_node_(Node *x) {
+		if (x == null_v) return null_v;
+		while (x->r != null_v) x = x->r;
+		return x;
 	}
 
-	void change_(Node* v, Node* u) {
+	void change_(Node* u, Node* v) {
 		if (u->p == nullptr) root_ = v;
 		else if (u == u->p->l) u->p->l = v;
 		else u->p->r = v;
@@ -213,23 +230,23 @@ private:
 		x->col = black;
 	}
 
-	void erase_(T value) {
-		Node *z = find_node(value), *x, *y;
-		if (z == nullptr) return;
+	bool erase_(T value) {
+		Node *z = find_node_(root_, value), *x, *y;
+		if (z == null_v) return false;
 
 		y = z;
 		bool col_y = y->col;
 
-		if (z->l == nullptr) {
+		if (z->l == null_v) {
 			x = z->r;
 			change_(z, z->r);
 		}
-		else if (z->r == nullptr) {
+		else if (z->r == null_v) {
 			x = z->l;
 			change_(z, z->l);
 		}
 		else {
-			y = min_node(z->r);
+			y = min_node_(z->r);
 			col_y = y->col;
 			x = y->r;
 			if (y->p == z) x->p = y;
@@ -245,11 +262,12 @@ private:
 		}
 		delete z;
 		if (col_y == black) fix_erase_(x);
+		return true;
 	}
 
 private:
 	void dump(Node* node, std::ostream& out) const {
-		if (node == nullptr) return;
+		if (node == null_v) return;
 		dump(node->l, out);
 		out << node->value << " ";
 		dump(node->r, out);
@@ -257,14 +275,18 @@ private:
 
 private:
 	int get_height(Node* x) {
-		if (x == nullptr) return 0;
+		if (x == null_v) return 0;
 		return 1 + std::max(get_height(x->l), get_height(x->r));
 	}
 	void check_black_nodes(Node *x, int &rf, int cnt) {
 		if (!x) return;
-		if (x->l == nullptr && x->r == nullptr) {
-			if (rf == -1) rf = cnt;
-			else assert(cnt == rf);
+		if (x->l == null_v) {
+			if (rf == -1) rf = cnt + 1;
+			else assert(cnt + 1 == rf);
+		}
+		if (x->r == null_v) {
+			if (rf == -1) rf = cnt + 1;
+			else assert(cnt + 1 == rf);
 		}
 		if (x->l) {
 			check_black_nodes(x->l, rf, cnt + (x->l->col == black));
@@ -273,6 +295,7 @@ private:
 			check_black_nodes(x->r, rf, cnt + (x->r->col == black));
 		}
 	}
+
 };
 
 template <class T>
