@@ -26,7 +26,13 @@ void test_random(int ITERATIONS, int MAXSIZE) {
 		double tst = clock();
 
 		rb_tree <int> t;
-		for (int i = 0; i < N; ++i) t.insert(vec[i]);
+		for (int i = 0; i < N; ++i) {
+//			cout << "Start inserting " << i << " (" << vec[i] << ")" << endl;
+			t.insert(vec[i]);
+//			cout << "End inserting " << i << endl;
+		}
+
+		t.check_validity();
 
 		double ten = clock();
 
@@ -60,11 +66,11 @@ void test_random_output(int ITERATIONS, int MAXSIZE) {
 }
 
 int main() {
-	test_random(3, 1000);
-	test_random(3, 10000);
-	test_random(3, 100000);
-//	test_random(1, 1000000);
+	test_random(100, 1000);
+//	test_random(3, 10000);
+//	test_random(3, 100000);
+	test_random(1, 1000000);
 //	test_random(5, 10000000);
 
-	test_random_output(10, 10);
+	test_random_output(10, 12);
 }

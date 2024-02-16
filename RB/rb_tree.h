@@ -1,6 +1,7 @@
 #pragma once
 #include <ostream>
 #include <cassert>
+#include <cmath>
 
 namespace RB {
 
@@ -22,6 +23,11 @@ public:
 		if (root_ == nullptr) return void(root_ = new Node{ black, x });
 		insert_(x);
 		++size_;
+	}
+	void check_validity() {
+		int cnst = 2 * log2(size_ + 1) + 5;
+		assert(get_height(root_) <= cnst);
+		int z = -1; check_black_nodes(root_, z, 1);
 	}
 
 private:
@@ -79,12 +85,12 @@ private:
 	}
 	void insert_(T x) {
 		Node* K = insert_(root_, x);
-		assert(K->p != nullptr);
+		assert(K->p != nullptr); // REMOVE ASSERTS
 		Node* P = K->p;
 
 		if (P->col == black) return;
 
-		assert(P->p != nullptr);
+		assert(P->p != nullptr); // REMOVE ASSERTS
 		
 		Node* G = P->p;
 		Node* U = (P == G->l ? G->r : G->l);
@@ -108,7 +114,6 @@ private:
 		}
 		else if (P == G->r && K == P->l) {
 			rotateR(P);
-
 			K->flip();
 			G->flip();
 			rotateL(G);
@@ -130,8 +135,23 @@ private:
 	}
 
 private:
-	bool check_height();
-	bool check_black_nodes();
+	int get_height(Node* x) {
+		if (x == nullptr) return 0;
+		return 1 + std::max(get_height(x->l), get_height(x->r));
+	}
+	void check_black_nodes(Node *x, int &rf, int cnt) {
+		if (!x) return;
+		if (x->l == nullptr && x->r == nullptr) {
+			if (rf == -1) rf = cnt;
+			else assert(cnt == rf);
+		}
+		if (x->l) {
+			check_black_nodes(x->l, rf, cnt + (x->l->col == black));
+		}
+		if (x->r) {
+			check_black_nodes(x->r, rf, cnt + (x->r->col == black));
+		}
+	}
 };
 
 template <class T>
