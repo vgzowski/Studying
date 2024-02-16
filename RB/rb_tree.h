@@ -2,7 +2,8 @@
 
 namespace RB {
 
-enum color { black = 0, red };
+enum color_t { black = 0, red };
+enum rotation_t { left = 0, right, left_right, right_left };
 
 template <
 	class T
@@ -13,18 +14,19 @@ public:
 	rb_tree() {}
 
 	void insert(T x) {
-		if (root_ == nullptr) {
-			root_ = new Node{ black, x, nullptr, nullptr, nullptr };
-			return;
-		}
-		root_ = insert(root_, x);
+		if (root_ == nullptr) return void(root_ = new Node{ black, x });
+		insert_(x);
 	}
 
 private:
 	struct Node {
-		color col;
+		color_t col;
 		T value;
-		Node *l, *r, *p;
+		Node *l = nullptr, *r = nullptr, *p = nullptr;
+
+		void flip() {
+			col ^= 1;
+		}
 	};
 
 	int size_ = 0;
@@ -39,7 +41,6 @@ private:
 		if (y != nullptr) {
 			y->p = node;
 		}
-		return x;
 	}
 	Node* rotateR(Node* node) {
 		Node* x = node->l;
@@ -53,8 +54,62 @@ private:
 		return x;
 	}
 
-	Node* insert(Node* node, T x) {
-		if (node == nullptr)
+	Node* insert_(Node* node, T x) {
+		if (node == nullptr) {
+			return new Node{ red, x };
+		}
+		else if (x < node->value) {
+			return insert_(node->l, x);
+		}
+		else {
+			return insert_(node->r, x);
+		}
+	}
+	void insert_(T x) {
+		Node* K = insert_(root_, x);
+		Node* P = K->p;
+		Node* S = (K == S->l ? S->r : S->l);
+
+		if (P->col == black) return;
+		
+		Node* G = P->p;
+		Node* U = (P == G->l ? G->r : G->l);
+
+		if (U && P->col == red && U->col == red) {
+			P->flip();
+			if (G != root_) G->flip();
+			U->flip();
+			return;
+		}
+
+		if (P == G->r && K == P->r) {
+			P->flip();
+			G->flip();
+			G = rotateL(G);
+		}
+		else if (P == G->l && K == P->l) {
+			P->flip();
+			G->flip();
+			G = rotateR(G);
+		}
+		else if (P == G->r && K == P->l) {
+			P = rotateR(P);
+			K = P->r;
+			S = P->l;
+
+			P->flip();
+			G->flip();
+			G = rotateL(G);
+		}
+		else {
+			P = rotateL(P);
+			K = P->l;
+			S = P->r;
+
+			P->flip();
+			G->flip();
+			G = rotateR(G);
+		}
 	}
 };
 
