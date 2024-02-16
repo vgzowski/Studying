@@ -1,5 +1,6 @@
 #pragma once
 #include <ostream>
+#include <cassert>
 
 namespace RB {
 
@@ -37,6 +38,7 @@ private:
 	int size_ = 0;
 	Node* root_ = nullptr;
 
+private:
 	void rotateL(Node* x) {
 		Node* y = x->r;
 		x->r = y->l;
@@ -77,21 +79,22 @@ private:
 	}
 	void insert_(T x) {
 		Node* K = insert_(root_, x);
+		assert(K->p != nullptr);
 		Node* P = K->p;
 
 		if (P->col == black) return;
+
+		assert(P->p != nullptr);
 		
 		Node* G = P->p;
 		Node* U = (P == G->l ? G->r : G->l);
 
-		return;
-		if (U && P->col == red && U->col == red) {
+		if (U != nullptr && P->col == red && U->col == red) {
 			P->flip();
-			if (G != root_) G->flip();
 			U->flip();
+			if (G != root_) G->flip();
 			return;
 		}
-		return;
 
 		if (P == G->r && K == P->r) {
 			P->flip();
@@ -105,24 +108,30 @@ private:
 		}
 		else if (P == G->r && K == P->l) {
 			rotateR(P);
-			P->flip();
+
+			K->flip();
 			G->flip();
 			rotateL(G);
 		}
 		else {
 			rotateL(P);
-			P->flip();
+			K->flip();
 			G->flip();
 			rotateR(G);
 		}
 	}
 
+private:
 	void dump(Node* node, std::ostream& out) const {
 		if (node == nullptr) return;
 		dump(node->l, out);
 		out << node->value << " ";
 		dump(node->r, out);
 	}
+
+private:
+	bool check_height();
+	bool check_black_nodes();
 };
 
 template <class T>
