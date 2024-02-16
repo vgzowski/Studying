@@ -20,10 +20,16 @@ public:
 	friend std::ostream & operator << (std::ostream &, const rb_tree<U> &);
 
 	void insert(T x) {
+		++size_;
 		if (root_ == nullptr) return void(root_ = new Node{ black, x });
 		insert_(x);
-		++size_;
 	}
+	void erase(T x);
+	bool search(T x);
+	T lower_bound(T x);
+	T min();
+	T max();
+
 	void check_validity() {
 		int cnst = 2 * log2(size_ + 1) + 5;
 		assert(get_height(root_) <= cnst);
@@ -34,11 +40,10 @@ private:
 	struct Node {
 		bool col;
 		T value;
-		Node *l = nullptr, *r = nullptr, *p = nullptr;
-
-		void flip() {
-			col ^= 1;
-		}
+		Node* l = nullptr;
+		Node* r = nullptr;
+		Node* p = nullptr;
+		void flip() { col ^= 1; }
 	};
 
 	int size_ = 0;
@@ -68,6 +73,7 @@ private:
 		x->p = y;
 	}
 
+private:
 	Node* insert_(Node*& node, T x) {
 		if (node == nullptr) {
 			return (node = new Node{ red, x });
@@ -124,6 +130,121 @@ private:
 			G->flip();
 			rotateR(G);
 		}
+	}
+
+private:
+	Node* find_node_(T x) {
+		Node* node = root_;
+		while (node != nullptr) {
+			if (node->value == x) return node;
+			else if (node->value > x) node = node->l;
+			else node = node->r;
+		}
+		return nullptr;
+	}
+
+	void change_(Node* v, Node* u) {
+		if (u->p == nullptr) root_ = v;
+		else if (u == u->p->l) u->p->l = v;
+		else u->p->r = v;
+		v->p = u->p;
+	}
+
+	void fix_erase_(Node* x) {
+		Node* s;
+		while (x != root_ && x->col == black) {
+			if (x == x->p->l) {
+				s = x->p->r;
+				if (x->col == red) {
+					s->col = black;
+					x->p->col = red;
+					rotateL(x->p);
+					s = x->p->r;
+				}
+
+				if (s->l->col == black && s->r->col == black) {
+					s->col = red;
+					x = x->p;
+				}
+				else {
+					if (s->r->col == black) {
+						s->l->col = black;
+						s->col = red;
+						rotateR(s);
+						s = x->p->r;
+					}
+
+					s->col = x->p->col;
+					x->p->col = black;
+					s->r->col = black;
+					rotateL(x->p);
+					x = root_;
+				}
+			}
+			else {
+				s = x->p->l;
+				if (x->col == red) {
+					s->col = black;
+					x->p->col = red;
+					rotateR(x->p);
+					s = x->p->l;
+				}
+
+				if (s->l->col == black && s->r->col == black) {
+					s->col = red;
+					x = x->p;
+				}
+				else {
+					if (s->l->col == black) {
+						s->r->col = black;
+						s->col = red;
+						rotateL(s);
+						s = x->p->l;
+					}
+
+					s->col = x->p->col;
+					x->p->col = black;
+					s->l->col = black;
+					rotateR(x->p);
+					x = root_;
+				}
+			}
+		}
+		x->col = black;
+	}
+
+	void erase_(T value) {
+		Node *z = find_node(value), *x, *y;
+		if (z == nullptr) return;
+
+		y = z;
+		bool col_y = y->col;
+
+		if (z->l == nullptr) {
+			x = z->r;
+			change_(z, z->r);
+		}
+		else if (z->r == nullptr) {
+			x = z->l;
+			change_(z, z->l);
+		}
+		else {
+			y = min_node(z->r);
+			col_y = y->col;
+			x = y->r;
+			if (y->p == z) x->p = y;
+			else {
+				change_(y, y->r);
+				y->r= z->r;
+				y->r->p = y;
+			}
+			change_(z, y);
+			y->l = z->l;
+			y->l->p = y;
+			y->col = z->col;
+		}
+		delete z;
+		if (col_y == black) fix_erase_(x);
 	}
 
 private:
